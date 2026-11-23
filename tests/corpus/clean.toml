@@ -1,0 +1,121 @@
+# Clean cases: these look risky but hold no secret. None should produce a blocking finding.
+
+[[case]]
+path = "src/ids.py"
+text = 'REQUEST_ID = "3f2b8c1e-9d4a-4f6b-8e2a-1c5d7f9b0a3e"'
+
+[[case]]
+path = "CHANGELOG.md"
+text = "Fixed in commit 9fceb02d0ae598e95dc970b74767f19372d61af8."
+
+[[case]]
+path = "package-lock.json"
+text = '      "integrity": "sha512-Vg2Oau7kL7aD7k6s5Sv4V8Q2k3rOW0z9GJ8n1sY7mEw9oQz0hU4tP5bLr8C6xT3nF2aK9dJ1eZ0yW4vX7uM5gA=="'
+
+[[case]]
+path = "web/logo.css"
+text = ".logo { background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==); }"
+
+[[case]]
+path = "app/settings.py"
+text = 'DB_PASSWORD = os.environ["DB_PASSWORD"]'
+
+[[case]]
+path = "docs/aws.md"
+text = "Example: AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE"
+
+[[case]]
+path = "docs/aws.md"
+text = "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+
+[[case]]
+path = "README.md"
+text = 'api_key = "<your-api-key-here>"'
+
+[[case]]
+path = ".env.example"
+text = "DB_PASSWORD=changeme"
+
+[[case]]
+path = "config/app.yaml"
+text = "password: ${DB_PASSWORD}"
+
+[[case]]
+path = "docker-compose.yml"
+text = "      DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/app"
+
+[[case]]
+path = "docs/setup.md"
+text = "Connect with postgres://user:password@localhost:5432/dev"
+
+[[case]]
+path = "src/auth.py"
+text = "def check_password(password: str, hashed: str) -> bool:"
+
+[[case]]
+path = "src/auth.py"
+text = "    password = request.form.get('password')"
+
+[[case]]
+path = "src/models.py"
+text = "    password_hash = Column(String(128), nullable=False)"
+
+[[case]]
+path = "src/forms.py"
+text = 'PASSWORD_FIELD_LABEL = "Enter your password"'
+
+[[case]]
+path = "tests/test_login.py"
+text = 'password = "test-password-123"'
+
+[[case]]
+path = "src/nlp.py"
+text = 'tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")'
+
+[[case]]
+path = "src/settings.py"
+text = 'TOKEN_URL = "https://auth.example.com/oauth/token"'
+
+[[case]]
+path = "src/settings.py"
+text = 'SECRET_KEY = os.getenv("SECRET_KEY")'
+
+[[case]]
+path = "web/src/i18n.ts"
+text = "export const keyboardShortcutKey = 'ctrl+shift+k';"
+
+[[case]]
+path = "docs/api.md"
+text = "Send the header `Authorization: Bearer <token>`."
+
+[[case]]
+path = "docs/api.md"
+text = "curl -H 'Authorization: Basic $BASIC_AUTH' https://api.internal"
+
+[[case]]
+path = "web/styles.css"
+text = ".sk-loader { animation: sk-bounce 1.4s infinite ease-in-out both; }"
+
+[[case]]
+path = "README.md"
+text = "See https://github.com/acme/app/blob/main/docs/setup.md for setup."
+
+[[case]]
+path = "src/keys.py"
+text = "PUBLIC_KEY_HEADER = '-----BEGIN PUBLIC KEY-----'"
+
+[[case]]
+path = "src/i18n/en.json"
+text = '  "password_reset_title": "Reset your password",'
+
+[[case]]
+path = "src/config.py"
+text = "MAX_PASSWORD_LENGTH = 128"
+
+[[case]]
+path = "infra/main.tf"
+text = 'secret_name = "prod/db/credentials"'
+
+[[case]]
+path = "yarn.lock"
+text = '  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"'
