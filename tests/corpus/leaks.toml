@@ -1,0 +1,332 @@
+# Leak cases: every case must produce a finding from `rule`.
+# {{name}} placeholders are filled with fake secrets by tests/fakes.py at test time.
+
+[[case]]
+rule = "generic/private-key"
+path = "deploy/id_rsa"
+text = "-----BEGIN RSA PRIVATE KEY-----"
+
+[[case]]
+rule = "generic/private-key"
+path = "certs/server.key"
+text = "-----BEGIN PRIVATE KEY-----"
+
+[[case]]
+rule = "generic/private-key"
+path = "config/keys.py"
+text = 'SSH_KEY = """-----BEGIN OPENSSH PRIVATE KEY-----'
+
+[[case]]
+rule = "generic/aws-access-key-id"
+path = ".env"
+text = "AWS_ACCESS_KEY_ID={{aws_access_key_id}}"
+
+[[case]]
+rule = "generic/aws-access-key-id"
+path = "settings.py"
+text = 'aws_key = "{{aws_access_key_id}}"'
+
+[[case]]
+rule = "generic/aws-access-key-id"
+path = "config/app.yaml"
+text = "  access_key: {{aws_access_key_id}}"
+
+[[case]]
+rule = "generic/aws-secret-access-key"
+path = ".env"
+text = "AWS_SECRET_ACCESS_KEY={{aws_secret_access_key}}"
+
+[[case]]
+rule = "generic/aws-secret-access-key"
+path = "credentials.json"
+text = '  "aws_secret_access_key": "{{aws_secret_access_key}}",'
+
+[[case]]
+rule = "generic/aws-secret-access-key"
+path = "src/main/resources/application.properties"
+text = "aws.secretAccessKey={{aws_secret_access_key}}"
+
+[[case]]
+rule = "generic/gcp-service-account"
+path = "service-account.json"
+text = '  "private_key_id": "{{gcp_private_key_id}}",'
+
+[[case]]
+rule = "generic/gcp-service-account"
+path = "infra/gcp-key.json"
+text = '{"type": "service_account", "private_key_id": "{{gcp_private_key_id}}"}'
+
+[[case]]
+rule = "generic/gcp-service-account"
+path = "tests/fixtures/sa.json"
+text = '"private_key_id":"{{gcp_private_key_id}}"'
+
+[[case]]
+rule = "generic/azure-storage-key"
+path = "appsettings.json"
+text = '"Storage": "DefaultEndpointsProtocol=https;AccountName=acme;AccountKey={{azure_account_key}};EndpointSuffix=core.windows.net"'
+
+[[case]]
+rule = "generic/azure-storage-key"
+path = ".env"
+text = "AZURE_STORAGE=DefaultEndpointsProtocol=https;AccountName=acme;AccountKey={{azure_account_key}}"
+
+[[case]]
+rule = "generic/azure-storage-key"
+path = "deploy.ps1"
+text = '$conn = "AccountName=acme;accountkey={{azure_account_key}}"'
+
+[[case]]
+rule = "generic/github-token"
+path = ".github/scripts/release.sh"
+text = "export GITHUB_TOKEN={{github_token}}"
+
+[[case]]
+rule = "generic/github-token"
+path = "ci.yml"
+text = "    token: {{github_token}}"
+
+[[case]]
+rule = "generic/github-token"
+path = "tools/sync.py"
+text = 'headers = {"Authorization": "token {{github_token}}"}'
+
+[[case]]
+rule = "generic/github-fine-grained-token"
+path = ".env"
+text = "GH_PAT={{github_pat}}"
+
+[[case]]
+rule = "generic/github-fine-grained-token"
+path = "scripts/clone.sh"
+text = "git clone https://x-access-token:{{github_pat}}@github.com/acme/app.git"
+
+[[case]]
+rule = "generic/github-fine-grained-token"
+path = "config.json"
+text = '{"github": "{{github_pat}}"}'
+
+[[case]]
+rule = "generic/gitlab-token"
+path = ".env"
+text = "GITLAB_TOKEN={{gitlab_token}}"
+
+[[case]]
+rule = "generic/gitlab-token"
+path = ".gitlab-ci.yml"
+text = "  PRIVATE_TOKEN: {{gitlab_token}}"
+
+[[case]]
+rule = "generic/gitlab-token"
+path = "scripts/api.py"
+text = 'requests.get(url, headers={"PRIVATE-TOKEN": "{{gitlab_token}}"})'
+
+[[case]]
+rule = "generic/slack-token"
+path = ".env"
+text = "SLACK_BOT_TOKEN={{slack_token}}"
+
+[[case]]
+rule = "generic/slack-token"
+path = "bot/config.yaml"
+text = "slack:\n  token: {{slack_token}}"
+
+[[case]]
+rule = "generic/slack-token"
+path = "bot/app.js"
+text = "const client = new WebClient('{{slack_token}}');"
+
+[[case]]
+rule = "generic/slack-webhook"
+path = "alerts.py"
+text = 'WEBHOOK = "{{slack_webhook}}"'
+
+[[case]]
+rule = "generic/slack-webhook"
+path = "monitoring/alertmanager.yml"
+text = "    api_url: {{slack_webhook}}"
+
+[[case]]
+rule = "generic/slack-webhook"
+path = "notify.sh"
+text = "curl -X POST -d @msg.json {{slack_webhook}}"
+
+[[case]]
+rule = "generic/stripe-live-key"
+path = ".env"
+text = "STRIPE_SECRET_KEY={{stripe_key}}"
+
+[[case]]
+rule = "generic/stripe-live-key"
+path = "billing/client.rb"
+text = "Stripe.api_key = '{{stripe_key}}'"
+
+[[case]]
+rule = "generic/stripe-live-key"
+path = "billing/config.ts"
+text = "export const stripeKey = `{{stripe_key}}`;"
+
+[[case]]
+rule = "generic/sendgrid-key"
+path = ".env"
+text = "SENDGRID_API_KEY={{sendgrid_key}}"
+
+[[case]]
+rule = "generic/sendgrid-key"
+path = "mail/send.py"
+text = 'sg = SendGridAPIClient("{{sendgrid_key}}")'
+
+[[case]]
+rule = "generic/sendgrid-key"
+path = "config/mail.yml"
+text = "sendgrid: {{sendgrid_key}}"
+
+[[case]]
+rule = "generic/google-api-key"
+path = "web/index.html"
+text = '<script src="https://maps.googleapis.com/maps/api/js?key={{google_api_key}}"></script>'
+
+[[case]]
+rule = "generic/google-api-key"
+path = "android/app/google-services.json"
+text = '"current_key": "{{google_api_key}}"'
+
+[[case]]
+rule = "generic/google-api-key"
+path = ".env"
+text = "GOOGLE_API_KEY={{google_api_key}}"
+
+[[case]]
+rule = "generic/npm-token"
+path = ".npmrc"
+text = "//registry.npmjs.org/:_authToken={{npm_token}}"
+
+[[case]]
+rule = "generic/npm-token"
+path = ".env"
+text = "NPM_TOKEN={{npm_token}}"
+
+[[case]]
+rule = "generic/npm-token"
+path = "ci/publish.sh"
+text = 'echo "//registry.npmjs.org/:_authToken={{npm_token}}" > ~/.npmrc'
+
+[[case]]
+rule = "generic/llm-api-key"
+path = ".env"
+text = "OPENAI_API_KEY={{llm_api_key}}"
+
+[[case]]
+rule = "generic/llm-api-key"
+path = "agent/llm.py"
+text = 'client = OpenAI(api_key="{{llm_api_key}}")'
+
+[[case]]
+rule = "generic/llm-api-key"
+path = "notebooks/test.ipynb"
+text = '    "os.environ[\"OPENAI_API_KEY\"] = \"{{llm_api_key}}\"\n",'
+
+[[case]]
+rule = "generic/jwt"
+path = "tests/api_test.http"
+text = "Authorization: Bearer {{jwt}}"
+
+[[case]]
+rule = "generic/jwt"
+path = "frontend/src/api.ts"
+text = "const SESSION = '{{jwt}}';"
+
+[[case]]
+rule = "generic/jwt"
+path = "postman_collection.json"
+text = '"value": "{{jwt}}"'
+
+[[case]]
+rule = "generic/database-url-password"
+path = ".env"
+text = "DATABASE_URL=postgres://app:{{password}}@db.internal:5432/app"
+
+[[case]]
+rule = "generic/database-url-password"
+path = "docker-compose.yml"
+text = "      MONGO_URL: mongodb+srv://admin:{{password}}@cluster0.mongodb.net/prod"
+
+[[case]]
+rule = "generic/database-url-password"
+path = "worker/settings.py"
+text = 'BROKER_URL = "redis://:{{password}}@cache.internal:6379/0"'
+
+[[case]]
+rule = "generic/jdbc-password"
+path = "src/main/resources/application.properties"
+text = "spring.datasource.url=jdbc:sqlserver://db.internal:1433;databaseName=app;user=app;password={{password}}"
+
+[[case]]
+rule = "generic/jdbc-password"
+path = "conf/db.conf"
+text = 'url = "jdbc:mysql://db.internal/app?user=app&password={{password}}"'
+
+[[case]]
+rule = "generic/jdbc-password"
+path = "Main.java"
+text = 'String url = "jdbc:postgresql://db/app?password={{password}}&ssl=true";'
+
+[[case]]
+rule = "generic/url-credentials"
+path = "scripts/deploy.sh"
+text = "git push https://deploy:{{password}}@git.internal/acme/app.git"
+
+[[case]]
+rule = "generic/url-credentials"
+path = "requirements.txt"
+text = "--extra-index-url https://ci:{{password}}@pypi.internal/simple"
+
+[[case]]
+rule = "generic/url-credentials"
+path = "config.yaml"
+text = "registry: http://admin:{{password}}@registry.internal:5000"
+
+[[case]]
+rule = "generic/basic-auth-header"
+path = "scripts/call.sh"
+text = 'curl -H "Authorization: Basic {{basic_auth}}" https://api.internal/v1'
+
+[[case]]
+rule = "generic/basic-auth-header"
+path = "client.py"
+text = 'headers = {"Authorization": "Basic {{basic_auth}}"}'
+
+[[case]]
+rule = "generic/basic-auth-header"
+path = "monitoring/probe.yml"
+text = "    authorization: Basic {{basic_auth}}"
+
+[[case]]
+rule = "generic/secret-assignment"
+path = "app/settings.py"
+text = 'DB_PASSWORD = "{{password}}"'
+
+[[case]]
+rule = "generic/secret-assignment"
+path = "config/app.json"
+text = '  "apiKey": "{{password}}",'
+
+[[case]]
+rule = "generic/secret-assignment"
+path = "src/Config.java"
+text = 'private static final String CLIENT_SECRET = "{{password}}";'
+
+[[case]]
+rule = "generic/password-unquoted"
+path = ".env"
+text = "DB_PASSWORD={{password}}"
+
+[[case]]
+rule = "generic/password-unquoted"
+path = "config/database.yml"
+text = "production:\n  password: {{password}}"
+
+[[case]]
+rule = "generic/password-unquoted"
+path = "src/main/resources/application.properties"
+text = "spring.datasource.password={{password}}"

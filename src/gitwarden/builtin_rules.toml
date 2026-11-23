@@ -1,0 +1,233 @@
+# GitWarden's built-in rules.
+#
+# Each [[rules]] entry finds one kind of secret. How a line is checked:
+#   1. the line must contain one of the rule's `keywords` (any case), else the rule is skipped
+#   2. the `regex` must match; capture group `secret_group` is the secret
+#   3. the secret must have at least `min_entropy` randomness and contain none of the `stopwords`
+#
+# Order matters: when two rules find the same secret on a line, the first rule wins.
+# So specific rules (AWS, GitHub, ...) come first and the generic ones come last.
+
+[pack]
+id = "generic"
+description = "Generic credentials: cloud keys, tokens, private keys, passwords"
+
+# catches: -----BEGIN RSA PRIVATE KEY-----
+[[rules]]
+id = "private-key"
+description = "Private key block"
+severity = "high"
+keywords = ["private key"]
+regex = '''-----BEGIN[A-Z ]*PRIVATE KEY(?: BLOCK)?-----'''
+secret_group = 0
+
+# catches: AWS_ACCESS_KEY_ID=AKIA + 16 upper-case letters or digits
+[[rules]]
+id = "aws-access-key-id"
+description = "AWS access key ID"
+severity = "high"
+keywords = ["akia", "asia", "abia", "acca"]
+regex = '''\b((?:AKIA|ASIA|ABIA|ACCA)[A-Z0-9]{16})\b'''
+secret_group = 1
+stopwords = ["example"]
+
+# catches: aws_secret_access_key = <40 base64 characters>
+[[rules]]
+id = "aws-secret-access-key"
+description = "AWS secret access key"
+severity = "high"
+keywords = ["secret_access_key", "secretaccesskey", "secret-access-key", "secret.access.key"]
+regex = '''(?i)aws[_.-]?secret[_.-]?access[_.-]?key["']?\s*[:=]\s*["']?([A-Za-z0-9/+]{40})(?![A-Za-z0-9/+=])'''
+secret_group = 1
+min_entropy = 3.0
+stopwords = ["example"]
+
+# catches: "private_key_id": "<40 hex characters>" in a GCP service-account JSON file
+[[rules]]
+id = "gcp-service-account"
+description = "Google Cloud service-account key file"
+severity = "high"
+keywords = ["private_key_id"]
+regex = '''"private_key_id"\s*:\s*"([a-f0-9]{40})"'''
+secret_group = 1
+
+# catches: AccountKey=<86 base64 characters>== in an Azure storage connection string
+[[rules]]
+id = "azure-storage-key"
+description = "Azure storage account key"
+severity = "high"
+keywords = ["accountkey"]
+regex = '''(?i)AccountKey=([A-Za-z0-9+/]{86}==)'''
+secret_group = 1
+
+# catches: ghp_ + 36 letters or digits (also gho_, ghu_, ghs_, ghr_)
+[[rules]]
+id = "github-token"
+description = "GitHub token"
+severity = "high"
+keywords = ["ghp_", "gho_", "ghu_", "ghs_", "ghr_"]
+regex = '''\b((?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36})\b'''
+secret_group = 1
+
+# catches: github_pat_ + 82 letters, digits or underscores
+[[rules]]
+id = "github-fine-grained-token"
+description = "GitHub fine-grained personal access token"
+severity = "high"
+keywords = ["github_pat_"]
+regex = '''\b(github_pat_[A-Za-z0-9_]{82})\b'''
+secret_group = 1
+
+# catches: glpat- + 20 or more letters, digits, - or _
+[[rules]]
+id = "gitlab-token"
+description = "GitLab personal access token"
+severity = "high"
+keywords = ["glpat-"]
+regex = '''\b(glpat-[A-Za-z0-9_-]{20,})'''
+secret_group = 1
+
+# catches: xoxb-1234-5678-abcd... (also xoxa-, xoxp-, xoxr-, xoxs-)
+[[rules]]
+id = "slack-token"
+description = "Slack token"
+severity = "high"
+keywords = ["xox"]
+regex = '''\b(xox[abprs]-[0-9A-Za-z-]{10,})'''
+secret_group = 1
+
+# catches: https://hooks.slack.com/services/T.../B.../...
+[[rules]]
+id = "slack-webhook"
+description = "Slack incoming webhook URL"
+severity = "high"
+keywords = ["hooks.slack.com"]
+regex = '''(https://hooks\.slack\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/[A-Za-z0-9]{20,})'''
+secret_group = 1
+
+# catches: sk_live_... or rk_live_...
+[[rules]]
+id = "stripe-live-key"
+description = "Stripe live secret or restricted key"
+severity = "high"
+keywords = ["_live_"]
+regex = '''\b((?:sk|rk)_live_[A-Za-z0-9]{20,})\b'''
+secret_group = 1
+
+# catches: SG.<22 characters>.<43 characters>
+[[rules]]
+id = "sendgrid-key"
+description = "SendGrid API key"
+severity = "high"
+keywords = ["sg."]
+regex = '''\b(SG\.[A-Za-z0-9_-]{22}\.[A-Za-z0-9_-]{43})(?![A-Za-z0-9_-])'''
+secret_group = 1
+
+# catches: AIza + 35 characters
+[[rules]]
+id = "google-api-key"
+description = "Google API key"
+severity = "high"
+keywords = ["aiza"]
+regex = '''\b(AIza[0-9A-Za-z_-]{35})(?![0-9A-Za-z_-])'''
+secret_group = 1
+
+# catches: npm_ + 36 letters or digits
+[[rules]]
+id = "npm-token"
+description = "npm access token"
+severity = "high"
+keywords = ["npm_"]
+regex = '''\b(npm_[A-Za-z0-9]{36})\b'''
+secret_group = 1
+
+# catches: sk-proj-..., sk-ant-..., sk-... (OpenAI, Anthropic and similar LLM API keys)
+[[rules]]
+id = "llm-api-key"
+description = "LLM provider API key (OpenAI, Anthropic and similar)"
+severity = "high"
+keywords = ["sk-"]
+regex = '''\b(sk-[A-Za-z0-9_-]{32,})'''
+secret_group = 1
+min_entropy = 3.5
+
+# catches: eyJhbGciOi....eyJzdWIiOi....signature
+[[rules]]
+id = "jwt"
+description = "JSON Web Token"
+severity = "medium"
+keywords = ["eyj"]
+regex = '''\b(eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})'''
+secret_group = 1
+
+# catches: postgres://app:s3cretPass@db.internal:5432/app (also mysql, mongodb, redis, amqp)
+[[rules]]
+id = "database-url-password"
+description = "Database or queue URL with a password in it"
+severity = "high"
+keywords = ["postgres", "mysql", "mongodb", "redis", "amqp"]
+regex = '''(?i)\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|rediss?|amqps?)://[^:/\s"'@]*:([^@/\s"']+)@'''
+secret_group = 1
+stopwords = ["$", "{{", "<", "%s", "password", "changeme", "example"]
+
+# catches: jdbc:sqlserver://db;user=app;password=s3cretPass
+[[rules]]
+id = "jdbc-password"
+description = "JDBC connection string with a password in it"
+severity = "high"
+keywords = ["jdbc:"]
+regex = '''(?i)jdbc:[a-z0-9]+:[^\s"']*[;?&]password=([^;&\s"']+)'''
+secret_group = 1
+stopwords = ["$", "{{", "<", "%s", "password", "changeme", "example"]
+
+# catches: https://deploy:s3cretPass@git.internal/repo.git
+[[rules]]
+id = "url-credentials"
+description = "Web URL with a username and password in it"
+severity = "medium"
+keywords = ["http"]
+regex = '''(?i)\bhttps?://[^:/\s"'@]+:([^@/\s"']{3,})@'''
+secret_group = 1
+stopwords = ["$", "{{", "<", "%s", "password", "changeme", "example"]
+
+# catches: Authorization: Basic dXNlcjpwYXNzd29yZA==
+[[rules]]
+id = "basic-auth-header"
+description = "HTTP Basic authorization header"
+severity = "medium"
+keywords = ["authorization"]
+regex = '''(?i)authorization["']?\s*[:=]\s*["']?basic\s+([A-Za-z0-9+/]{8,}={0,2})'''
+secret_group = 1
+
+# catches: db_password = "s3cretPass99", "apiKey": "...", SECRET_KEY = '...'
+[[rules]]
+id = "secret-assignment"
+description = "Password, secret, token or API key written in quotes"
+severity = "medium"
+keywords = ["pass", "pwd", "secret", "token", "key"]
+regex = '''(?i)(?:password|passwd|pwd|secret|secret[_-]?key|token|api[_-]?key|access[_-]?key|private[_-]?key|client[_-]?secret)["']?\s*(?::=|=>|[:=])\s*["']([^"'\s]{8,})["']'''
+secret_group = 1
+min_entropy = 3.0
+stopwords = ["example", "changeme", "placeholder", "your", "xxxx", "dummy", "test", "fake", "sample", "redacted", "<", "{{", "${", "%s"]
+
+# catches: DB_PASSWORD=s3cretPass99 in .env files, password: s3cretPass99 in YAML
+[[rules]]
+id = "password-unquoted"
+description = "Password written without quotes (.env, YAML, .properties)"
+severity = "medium"
+keywords = ["pass", "pwd"]
+regex = '''(?i)^\s*(?:export\s+)?[a-z0-9_.-]*(?:password|passwd|pwd)\s*[=:]\s*([^\s"'#$(){}\[\]<>,;]{8,})\s*$'''
+secret_group = 1
+min_entropy = 2.5
+stopwords = ["example", "changeme", "placeholder", "your", "xxxx", "dummy", "test", "fake", "sample", "redacted", "password"]
+
+# catches: any long random-looking string in quotes. Off by default: too noisy without the LLM review.
+[[rules]]
+id = "high-entropy-string"
+description = "Long random-looking string in quotes"
+severity = "low"
+keywords = ["\"", "'"]
+regex = '''["']([A-Za-z0-9+/=_-]{32,})["']'''
+secret_group = 1
+min_entropy = 4.5
+enabled = false

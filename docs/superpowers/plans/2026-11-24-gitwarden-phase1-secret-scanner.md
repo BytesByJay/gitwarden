@@ -21,7 +21,7 @@
 - Messages never mention `--no-verify`.
 - Output is ASCII only.
 - Ruff: line length 100, rules `E, F, I, B, UP`; code must pass `ruff check` and `ruff format --check`.
-- Every commit message ends with the line `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- Commit messages are plain: no AI or Claude name, no `Co-Authored-By` line.
 - Commands below use `.venv/bin/...`; on Windows use `.venv\Scripts\...`.
 
 ## File map
@@ -334,9 +334,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add pyproject.toml .gitignore .gitattributes tests/test_cli.py src/gitwarden/__init__.py src/gitwarden/errors.py src/gitwarden/__main__.py src/gitwarden/cli.py .github/workflows/ci.yml
-git commit -m "Set up package, CLI --version and CI
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Set up package, CLI --version and CI"
 ```
 
 
@@ -580,9 +578,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_diff.py src/gitwarden/diff.py
-git commit -m "Add diff parser for added lines
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add diff parser for added lines"
 ```
 
 
@@ -1137,9 +1133,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_rules.py src/gitwarden/rules.py src/gitwarden/builtin_rules.toml
-git commit -m "Add rule pack loader and built-in rules
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add rule pack loader and built-in rules"
 ```
 
 
@@ -1352,9 +1346,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_config.py src/gitwarden/config.py
-git commit -m "Add .gitwarden.toml config loading
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add .gitwarden.toml config loading"
 ```
 
 
@@ -1613,9 +1605,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_allowlist.py src/gitwarden/allowlist.py
-git commit -m "Add allowlist with reasons and expiry dates
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add allowlist with reasons and expiry dates"
 ```
 
 
@@ -2093,9 +2083,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/fakes.py tests/test_scanner.py src/gitwarden/scanner.py
-git commit -m "Add scanner with redaction, file skipping and allowlist
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add scanner with redaction, file skipping and allowlist"
 ```
 
 
@@ -2670,9 +2658,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/corpus/leaks.toml tests/corpus/clean.toml tests/test_corpus.py
-git commit -m "Add leak and clean test set with recall and false-positive targets
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add leak and clean test set with recall and false-positive targets"
 ```
 
 
@@ -2921,9 +2907,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_report.py src/gitwarden/report.py
-git commit -m "Add report formatting
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add report formatting"
 ```
 
 
@@ -3213,9 +3197,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/conftest.py tests/test_git.py src/gitwarden/git.py
-git commit -m "Add git access module
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add git access module"
 ```
 
 
@@ -3583,9 +3565,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_hooks.py src/gitwarden/hooks.py
-git commit -m "Add hook install/uninstall and pre-commit/pre-push checks
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add hook install/uninstall and pre-commit/pre-push checks"
 ```
 
 
@@ -3995,9 +3975,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_cli.py src/gitwarden/cli.py
-git commit -m "Add scan, install, uninstall, allow and rules commands
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add scan, install, uninstall, allow and rules commands"
 ```
 
 
@@ -4162,9 +4140,7 @@ Expected: everything passes, `All checks passed!`, no files to reformat.
 
 ```bash
 git add tests/test_perf.py README.md .gitwarden.toml
-git commit -m "Add speed test, README and repo config
-
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+git commit -m "Add speed test, README and repo config"
 ```
 
 

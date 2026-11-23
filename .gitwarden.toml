@@ -1,0 +1,5 @@
+# GitWarden's settings for its own repository.
+# The tests, the built-in rules file and the plans (which contain that code)
+# hold example secrets on purpose, so they are not scanned here.
+[scan]
+paths_exclude = ['^tests/', '^src/gitwarden/builtin_rules\.toml$', '^docs/superpowers/plans/']
