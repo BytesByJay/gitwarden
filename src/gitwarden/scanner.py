@@ -118,7 +118,7 @@ def shannon_entropy(text: str) -> float:
 
 
 def redact(secret: str) -> str:
-    """'AKIAABCDEFGHIJKLWXYZ' -> 'AKIA************WXYZ'. Short secrets are hidden completely."""
+    """'ABCDEFGHIJKLMNOPQRST' -> 'ABCD************QRST'. Short secrets are hidden completely."""
     if len(secret) < 12:
         return "*" * len(secret)
     return secret[:4] + "*" * (len(secret) - 8) + secret[-4:]
