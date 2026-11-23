@@ -1,0 +1,4 @@
+# GitWarden's settings for its own repository.
+# The tests hold fake secrets on purpose, so they are not scanned here.
+[scan]
+paths_exclude = ['^tests/']
