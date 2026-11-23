@@ -63,8 +63,8 @@ Boundaries:
 - `git.py` is the only module that runs `git`. Everything else works on strings and dataclasses, so the scanner is tested without a repository.
 - `diff.py` produces `AddedLine(path, line_no, text, commit)`, where `commit` is `None` for staged changes. Only **added** lines are scanned.
 - `scanner.py` does no I/O.
-- `Finding` (dataclass): `rule_id`, `severity`, `description`, `path`, `line_no`, `commit`, `redacted_line`, `fingerprint`. The raw secret is used to compute the fingerprint and is then dropped. It is never stored on a `Finding` and never printed.
-- `ScanResult` (dataclass): `findings`, `expired_allows`, `skipped` (path + reason), `warnings`.
+- `Finding` (dataclass): `rule_id`, `severity`, `description`, `path`, `line_no`, `commit`, `redacted_line`, `fingerprint`, `expired_allow` (the allowlist entry, when one existed but has expired). The raw secret is used to compute the fingerprint and is then dropped. It is never stored on a `Finding` and never printed.
+- `ScanResult` (dataclass): `findings`, `skipped` (path + reason), `warnings`, `allowed_count`.
 - Entropy is one small function in `scanner.py`, not its own module.
 
 ### Config
@@ -117,7 +117,7 @@ enabled = true               # optional; false = off unless listed in [rules].en
 
 Detection for each added line, cheapest step first:
 
-1. **File filters:** skip binary files, lockfiles (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `go.sum`), files over `max_file_kb`, and paths matching `paths_exclude`. Every skip is recorded in `ScanResult.skipped`.
+1. **File filters:** skip binary files, lockfiles (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `poetry.lock`, `Cargo.lock`, `go.sum`), files with more than `max_file_kb` of text added in this change (measured on the diff, so no extra git call per file), and paths matching `paths_exclude`. Every skip is recorded in `ScanResult.skipped`.
 2. **Keyword pre-filter** for each rule.
 3. **Regex match;** take `secret_group`.
 4. **Rule checks:** `min_entropy`, `stopwords`.
@@ -229,7 +229,7 @@ expires = 2027-02-21
 - Fingerprint = the first 12 hex characters of `sha256(rule_id + "\n" + path + "\n" + secret)`. The path is included, so an allow entry for a test file doesn't cover the same string elsewhere. The same 12 characters are printed in the output and typed into `gitwarden allow`.
 - `expires` and a non-empty `reason` are required. `expires` must be after today and no more than `[allowlist].max_days` from today.
 - An expired entry no longer suppresses anything. The finding blocks with the extra line `allowlist entry 3f9a1c2e7d40 expired on 2027-02-21 (reason: ...)`.
-- `gitwarden allow <fingerprint> --reason TEXT --expires YYYY-MM-DD` re-runs the staged scan and checks that a finding with that fingerprint exists (error if not). It then appends the entry and runs `git add .gitwarden-allow.toml`, so the exception goes into the same commit.
+- `gitwarden allow <fingerprint> --reason TEXT --expires YYYY-MM-DD [--range A..B]` re-runs the staged scan (or scans the given commits, for findings from a push) and checks that a finding with that fingerprint exists (error if not). It then appends the entry and runs `git add .gitwarden-allow.toml`, so the exception goes into the same commit.
 - `gitwarden allow --list` shows entries: expired first, then those expiring within 14 days, then the rest.
 - A malformed allowlist (bad TOML, missing field, bad date, duplicate fingerprint) is a config error, exit `2`.
 - Known limit: a very weak "secret" could be guessed from its fingerprint. The allowlist is for test values and false positives, not real secrets.
@@ -249,13 +249,15 @@ expires = 2027-02-21
 
 ### Test set (`tests/corpus/`)
 
-- **`leaks/`:** about 150 cases, at least 3 per enabled rule, in realistic places (`.env`, YAML, JSON, Python, Java `.properties`, URLs, quoted and unquoted). They're stored as **templates** such as `AWS_KEY = "{{aws_access_key_id}}"`, and `tests/fakes.py` fills them with seeded, format-valid fake values at test time. That way the repo holds no realistic-looking tokens, which GitHub push protection and GitWarden itself would otherwise block. Each case names the rule id it expects.
-- **`clean/`:** about 100 cases that look risky but are safe: UUIDs, git SHAs, lockfile `integrity` hashes, base64 images, `password = os.environ["DB_PASSWORD"]`, documentation keys such as `AKIAIOSFODNN7EXAMPLE`, and placeholders like `<your-token-here>`.
+Two files, `leaks.toml` and `clean.toml`, each a list of `[[case]]` entries with a `path` and `text` (leak cases also name the expected `rule`). Grow them whenever a false positive or a miss is reported.
+
+- **`leaks.toml`:** 66 cases to start, at least 3 per enabled rule, in realistic places (`.env`, YAML, JSON, Python, Java `.properties`, URLs, quoted and unquoted). They're stored as **templates** such as `AWS_KEY = "{{aws_access_key_id}}"`, and `tests/fakes.py` fills them with seeded, format-valid fake values at test time. That way the repo holds no realistic-looking tokens, which GitHub push protection and GitWarden itself would otherwise block. Each case names the rule id it expects.
+- **`clean.toml`:** 30 cases to start that look risky but are safe: UUIDs, git SHAs, lockfile `integrity` hashes, base64 images, `password = os.environ["DB_PASSWORD"]`, documentation keys such as `AKIAIOSFODNN7EXAMPLE`, and placeholders like `<your-token-here>`.
 
 ### Targets checked by pytest on every change
 
 1. **Recall:** at least 95% of leak cases produce a finding with the expected rule id. Misses are printed per rule.
-2. **False positives:** at most 5% of clean files produce a blocking finding. The number is printed as the baseline for Phase 2.
+2. **False positives:** at most 5% of clean cases produce a blocking finding. The number is printed as the baseline for Phase 2.
 3. **Speed:** a synthetic staged change of 200 files and 2 000 added lines, run through the installed `pre-commit` hook end to end (including Python startup), finishes in under 1 second on CI runners. Marked `@pytest.mark.perf`.
 4. **Integration** (real repos in `tmp_path`):
    - a staged leak blocks
