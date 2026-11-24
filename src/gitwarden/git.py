@@ -118,5 +118,43 @@ def stage_file(root: Path, relative_path: str) -> None:
     run_git(["add", "--", relative_path], root)
 
 
+def git_dir(root: Path) -> Path:
+    """The repository's .git folder (a different place inside worktrees)."""
+    output = run_git(["rev-parse", "--git-dir"], root)
+    return (root / output.strip()).resolve()
+
+
+def staged_file_names(root: Path) -> list[str]:
+    """Names of all staged files, including deleted ones."""
+    return run_git(["diff", "--cached", "--name-only"], root).splitlines()
+
+
+def staged_stat(root: Path) -> str:
+    """The short 'file | 12 +++--' overview of the staged changes."""
+    return run_git(["diff", "--cached", "--stat", "--no-color"], root)
+
+
+def recent_subjects(root: Path, count: int) -> list[str]:
+    """First lines of the last `count` commits, newest first. Empty in a new repo."""
+    try:
+        output = run_git(["log", f"-{count}", "--format=%s"], root)
+    except GitWardenError:
+        return []  # a repository without commits yet
+    return [line for line in output.splitlines() if line.strip()]
+
+
+def commit_with_editor(root: Path, message: str | None) -> int:
+    """Run `git commit` in the terminal so the developer's editor opens.
+
+    With a message, the editor starts with it filled in. Returns git's exit code.
+    """
+    command = ["git", "commit"]
+    if message is not None:
+        draft_path = git_dir(root) / "GITWARDEN_DRAFT_MSG"
+        draft_path.write_text(message + "\n", encoding="utf-8")
+        command += ["-e", "-F", str(draft_path)]
+    return subprocess.run(command, cwd=root).returncode
+
+
 def _is_zero(sha: str) -> bool:
     return set(sha) == {"0"}
