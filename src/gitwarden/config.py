@@ -3,6 +3,7 @@
 import re
 import tomllib
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -10,6 +11,7 @@ from gitwarden.errors import GitWardenError, describe
 from gitwarden.rules import Severity
 
 CONFIG_FILE = ".gitwarden.toml"
+PromptFormat = Literal["chatml", "llama3"]
 
 
 class HooksConfig(BaseModel):
@@ -50,6 +52,20 @@ class AllowlistConfig(BaseModel):
     max_days: int = Field(default=90, gt=0)
 
 
+class LlmConfig(BaseModel):
+    """[llm]: the optional local model. Off until a developer sets it up."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = False
+    llamafile: str = "~/.gitwarden/llamafile"  # on Windows ".exe" is added automatically
+    model: str = "~/.gitwarden/qwen2.5-3b-instruct-q4_k_m.gguf"
+    prompt_format: PromptFormat = "chatml"
+    timeout_seconds: int = Field(default=30, gt=0)
+    max_tokens: int = Field(default=200, gt=0)
+    review_findings: bool = True
+
+
 class Config(BaseModel):
     """The whole .gitwarden.toml file. Every key has a default."""
 
@@ -59,6 +75,7 @@ class Config(BaseModel):
     scan: ScanConfig = ScanConfig()
     rules: RulesConfig = RulesConfig()
     allowlist: AllowlistConfig = AllowlistConfig()
+    llm: LlmConfig = LlmConfig()
 
 
 def load_config(repo_root: Path) -> Config:
