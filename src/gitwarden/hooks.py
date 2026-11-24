@@ -10,6 +10,7 @@ from gitwarden.config import Config, load_config, pack_paths
 from gitwarden.diff import ParsedDiff, parse_diff
 from gitwarden.errors import GitWardenError
 from gitwarden.report import format_result
+from gitwarden.review import review_findings
 from gitwarden.rules import load_rules
 from gitwarden.scanner import ScanResult, scan
 
@@ -105,7 +106,13 @@ def scan_and_report(root: Path, diff: ParsedDiff, action: str, today: date | Non
     config = load_config(root)
     result = scan_with_config(root, config, diff, today or date.today(), use_allowlist=True)
     print(format_result(result, config.scan.block_on, action), file=sys.stderr, end="")
-    return 1 if result.blocking(config.scan.block_on) else 0
+    blocking = result.blocking(config.scan.block_on)
+    exit_code = 1 if blocking else 0  # decided here; the model's opinion never changes it
+
+    if blocking and config.llm.enabled and config.llm.review_findings:
+        print("Asking the local model for its opinion...", file=sys.stderr)
+        print(review_findings(blocking, config.llm), file=sys.stderr, end="")
+    return exit_code
 
 
 def scan_with_config(

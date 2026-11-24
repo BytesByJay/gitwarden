@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from gitwarden.config import CONFIG_FILE, Config, load_config, pack_paths
+from gitwarden.config import CONFIG_FILE, Config, LlmConfig, load_config, pack_paths
 from gitwarden.errors import GitWardenError
 
 
@@ -55,3 +55,41 @@ def test_pack_paths_are_relative_to_repo_root(tmp_path):
     paths = pack_paths(tmp_path, load_config(tmp_path))
     assert paths[0] == tmp_path / "rules/acme.toml"
     assert paths[1] == Path(absolute)
+
+
+def test_llm_is_off_by_default_with_sensible_defaults(tmp_path):
+    llm = load_config(tmp_path).llm
+    assert llm == LlmConfig()
+    assert llm.enabled is False
+    assert llm.prompt_format == "chatml"
+    assert llm.timeout_seconds == 30
+    assert llm.max_tokens == 200
+    assert llm.review_findings is True
+    assert llm.model.endswith(".gguf")
+
+
+def test_llm_values_are_read(tmp_path):
+    write_config(
+        tmp_path,
+        '[llm]\nenabled = true\nprompt_format = "llama3"\ntimeout_seconds = 60\n'
+        'model = "~/models/llama.gguf"\n',
+    )
+    llm = load_config(tmp_path).llm
+    assert llm.enabled is True
+    assert llm.prompt_format == "llama3"
+    assert llm.timeout_seconds == 60
+    assert llm.model == "~/models/llama.gguf"
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ('[llm]\nprompt_format = "mistral"\n', "llm.prompt_format"),
+        ("[llm]\ntimeout_seconds = 0\n", "llm.timeout_seconds"),
+        ("[llm]\nturbo = true\n", "llm.turbo"),
+    ],
+)
+def test_llm_mistakes_are_errors(tmp_path, text, message):
+    write_config(tmp_path, text)
+    with pytest.raises(GitWardenError, match=message):
+        load_config(tmp_path)

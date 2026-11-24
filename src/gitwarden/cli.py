@@ -1,4 +1,4 @@
-"""The `gitwarden` command: scan, install, uninstall, allow, rules."""
+"""The `gitwarden` command: scan, install, uninstall, allow, commit, rules, llm."""
 
 import os
 from datetime import date
@@ -11,9 +11,12 @@ from gitwarden import __version__, git
 from gitwarden.allowlist import ALLOW_FILE, AllowEntry, add_entry, check_new_entry, load_allowlist
 from gitwarden.config import load_config, pack_paths
 from gitwarden.diff import ParsedDiff, lines_from_file, parse_diff
+from gitwarden.draft import run_commit
 from gitwarden.errors import GitWardenError
 from gitwarden.hooks import diff_for_commits, install_hooks, scan_and_report, scan_with_config
 from gitwarden.hooks import uninstall_hooks as remove_hooks
+from gitwarden.llm import ask, check_setup
+from gitwarden.prompts import CHECK_QUESTION, CHECK_SYSTEM, wrap
 from gitwarden.report import format_allowlist
 from gitwarden.rules import load_all_rules, load_pack, load_rules
 
@@ -24,6 +27,8 @@ app = typer.Typer(
 )
 rules_app = typer.Typer(help="Look at and check rule packs.", no_args_is_help=True)
 app.add_typer(rules_app, name="rules")
+llm_app = typer.Typer(help="The optional local AI model.", no_args_is_help=True)
+app.add_typer(llm_app, name="llm")
 
 
 def _show_version(value: bool) -> None:
@@ -128,6 +133,47 @@ def allow(
     except GitWardenError as err:
         _fail(err)
     typer.echo(f"Added {fingerprint} to {ALLOW_FILE} and staged it.")
+
+
+@app.command()
+def commit() -> None:
+    """Draft a commit message with the local model, open it in your editor, then commit."""
+    try:
+        root = git.repo_root()
+        git.check_git_version()
+        code = run_commit(root)
+    except GitWardenError as err:
+        _fail(err)
+    raise typer.Exit(code)
+
+
+@llm_app.command("check")
+def llm_check() -> None:
+    """Check that the local model is set up, and time one tiny question."""
+    try:
+        settings = load_config(git.repo_root()).llm
+    except GitWardenError as err:
+        _fail(err)
+    problem = check_setup(settings)
+    if problem is not None:
+        typer.echo(f"Not ready: {problem}", err=True)
+        raise typer.Exit(2)
+
+    typer.echo("Asking the model a tiny question...")
+    answer = ask(wrap(CHECK_SYSTEM, CHECK_QUESTION, settings.prompt_format), settings)
+    if answer.text is None:
+        typer.echo(f"Not ready: {answer.error}", err=True)
+        if "run-detectors" in (answer.error or "") or "Exec format" in (answer.error or ""):
+            typer.echo(
+                "This is a known llamafile start-up problem on some Linux systems. See the "
+                "troubleshooting page: https://docs.mozilla.ai/llamafile/reference/troubleshooting",
+                err=True,
+            )
+        raise typer.Exit(2)
+    typer.echo(
+        f"OK: model answered in {answer.seconds:.1f} s "
+        "(the first run after a restart is slower; run again for the warm time)"
+    )
 
 
 @rules_app.command("list")

@@ -48,3 +48,35 @@ def test_user_name_and_commit_exists(repo):
     head = git(repo, "rev-parse", "HEAD").stdout.strip()
     assert gw_git.commit_exists(repo, head)
     assert not gw_git.commit_exists(repo, "1" * 40)
+
+
+def test_staged_helpers(repo):
+    assert gw_git.recent_subjects(repo, 5) == []  # no commits yet
+    commit_file(repo, "a.txt", "one\n", "Add a")
+    commit_file(repo, "b.txt", "two\n", "Add b")
+    assert gw_git.recent_subjects(repo, 5) == ["Add b", "Add a"]
+    assert gw_git.recent_subjects(repo, 1) == ["Add b"]
+
+    git(repo, "rm", "-q", "a.txt")
+    write(repo, "c.txt", "three\n")
+    git(repo, "add", "c.txt")
+    assert sorted(gw_git.staged_file_names(repo)) == ["a.txt", "c.txt"]
+    assert "c.txt" in gw_git.staged_stat(repo)
+    assert gw_git.git_dir(repo) == (repo / ".git").resolve()
+
+
+def test_commit_with_editor_uses_the_draft(repo, monkeypatch):
+    monkeypatch.setenv("GIT_EDITOR", "true")  # an editor that changes nothing
+    write(repo, "a.txt", "one\n")
+    git(repo, "add", "a.txt")
+    assert gw_git.commit_with_editor(repo, "Add a file\n\n- first line") == 0
+    message = git(repo, "log", "-1", "--format=%B").stdout.strip()
+    assert message == "Add a file\n\n- first line"
+
+
+def test_commit_with_editor_without_draft_aborts_on_empty_message(repo, monkeypatch):
+    monkeypatch.setenv("GIT_EDITOR", "true")
+    write(repo, "a.txt", "one\n")
+    git(repo, "add", "a.txt")
+    assert gw_git.commit_with_editor(repo, None) != 0
+    assert git(repo, "log", check=False).returncode != 0  # still no commits

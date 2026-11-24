@@ -21,7 +21,10 @@ packages = ["src/gitwarden"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["perf: speed checks that run the real hook"]
+markers = [
+    "perf: speed checks that run the real hook",
+    "model: tests that need the real local model (skipped unless set up)",
+]
 
 [tool.ruff]
 line-length = 100
